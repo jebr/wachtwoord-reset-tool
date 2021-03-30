@@ -6,6 +6,8 @@ import subprocess
 import argparse
 import getpass
 import time
+import sys
+import os
 
 
 parser = argparse.ArgumentParser(description='Python script to install and '
@@ -118,7 +120,7 @@ def checkout_password(password, samaccountname) -> bool:
                     categories_in_password += 1
                     break
         if categories_in_password < 3:
-            self.password_fault = (
+            password_fault = (
                 'Het wachtwoord niet complex genoeg.\n'
                 'Maak gebruik van tekens, letters en cijfers')
             return False
@@ -161,16 +163,25 @@ def reset_password():
         # print('You have insufficient rights to change usser passwords')
         sys.exit('\nERROR: You have insufficient rights to change usser passwords\n')
     else:
-        username = input("Enter username: ")
-        password = input("Enter password: ")
 
         while True:
+            username = input("Enter username: ")
             if username == "":
                 print("Enter username")
-            elif check_user_ad(username):
-                print("Unknown user")
-            elif password == "":
-                print("Enter password")
+            elif username == "q":
+                sys.exti('Program stopped by the user')
+            elif not check_user_ad(username):
+                print("The user does not exist in the active directory")
+            else:
+                break
+
+
+        while True:
+            password = getpass.getpass("Enter password: ")
+            if password == "":
+                print("Password can't be empty")
+            elif password == "q":
+                sys.exti('Program stopped by the user')
             elif not checkout_password(password, username):
                 print("Password does not meet password requirements")
             else:
