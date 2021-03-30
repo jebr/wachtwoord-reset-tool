@@ -60,18 +60,6 @@ def check_domain() -> bool:
         return False
 
 
-def check_rsat() -> bool:
-    # Windows server
-    # (Get-WindowsFeature -name rsat).installstate return Installed or Available
-    # Windows 10
-    # Get-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
-    rsat_check = powershell(['(get-module -list activedirectory).name'])
-    if rsat_check == "":
-        return False
-    else:
-        return True
-
-
 def check_user_group() -> bool:
     group_check = powershell(['(Get-ADUser -Identity $env:USERNAME '
                               '-Properties Memberof).Memberof'])
@@ -90,6 +78,11 @@ def check_user_ad(samaccountname) -> bool:
     else:
         return False
 
+
+def get_ad_users():
+    clear_screen()
+    ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
+    print(ad_users)
 
 def checkout_password(password, samaccountname) -> bool:
         """Password requirements based on
@@ -134,9 +127,23 @@ def install():
     install_rsat_server()
 
 
+
+def check_rsat() -> bool:
+    # Windows server
+    # (Get-WindowsFeature -name rsat).installstate return Installed or Available
+    # Windows 10
+    # Get-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
+    rsat_check = powershell(['(get-module -list activedirectory).name'])
+    if rsat_check == "":
+        return False
+    else:
+        return True
+
+
+# TODO: programmeren  voor Windows10 en Windows server
 def install_rsat_tools():
     # Windows server syntax
-    # Install-WindowsFeature -IncludeAllSubFeature RSAT
+    #
     # Uninstall-Windowsfeature -Name RSAT
     # Windows 10 Syntax
     # Add-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
@@ -165,25 +172,33 @@ def reset_password():
     else:
 
         while True:
+            print("\nEnter SamAccountName (q to quit)\n")
             username = input("Enter username: ")
             if username == "":
-                print("Enter username")
+                clear_screen()
+                print("\nUsername can't be empty\n")
             elif username == "q":
-                sys.exti('Program stopped by the user')
+                clear_screen()
+                sys.exit('\nProgram stopped by the user\n')
             elif not check_user_ad(username):
-                print("The user does not exist in the active directory")
+                clear_screen()
+                print("\nThe user does not exist in the active directory\n")
             else:
                 break
 
 
         while True:
+            print("\nEnter Password (q to quit)\n")
             password = getpass.getpass("Enter password: ")
             if password == "":
-                print("Password can't be empty")
+                clear_screen()
+                print("\nPassword can't be empty\n")
             elif password == "q":
-                sys.exti('Program stopped by the user')
+                clear_screen()
+                sys.exit('\nProgram stopped by the user\n')
             elif not checkout_password(password, username):
-                print("Password does not meet password requirements")
+                clear_screen()
+                print("\nPassword does not meet password requirements\n")
             else:
                 break
 
@@ -192,6 +207,7 @@ def reset_password():
                     f'-asplaintext "{password}" -force)'])
 
         print(f"Password of {username} changed to {password}")
+
 
 
 def clear_screen():
@@ -206,6 +222,8 @@ parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
 parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)",
                     action="store_true")
+parser.add_argument("--getusers", help="Get list of AD users)",
+                    action="store_true")
 
 args = parser.parse_args()
 
@@ -213,5 +231,7 @@ if args.reset:
     reset_password()
 elif args.install:
     install()
+elif args.getusers:
+    get_ad_users()
 else:
     parser.print_help()
