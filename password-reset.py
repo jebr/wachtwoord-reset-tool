@@ -59,10 +59,6 @@ def install_rsat_server():
     set_service_and_firewall()
 
 
-def valid_password() -> bool:
-    return false
-
-
 def check_domain() -> bool:
     domain_check = powershell(['(Get-WmiObject -Class Win32_ComputerSystem).'
                                'PartOfDomain'])
@@ -81,14 +77,59 @@ def check_rsat() -> bool:
 
 
 def check_user_group() -> bool:
-    group_check = powershell(['(get-aduser -Identity $env:USERNAME '
-                              '-properties Memberof).memberof'])
+    group_check = powershell(['(Get-ADUser -Identity $env:USERNAME '
+                              '-Properties Memberof).Memberof'])
+    if "Domain Admins" in group_check:
+        return True
+    elif "Account Operators" in group_check:
+        return True
+    else:
+        return False
 
-    return False
+
+def check_user_ad(samaccountname) -> bool:
+    ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
+    if samaccountname in ad_users:
+        return True
+    else:
+        return False
 
 
-def get_ad_users():
-    pass
+def checkout_password(password, samaccountname) -> bool:
+        """Password requirements based on
+        https://docs.microsoft.com/en-us/windows/security/threat-protection/
+        security-policy-settings/password-must-meet-complexity-requirements
+        """
+        password_fault = ''
+        if samaccountname.lower() in password.lower() and len \
+                    (samaccountname) > 3:
+            password_fault = (
+                'De gebruikersnaam mag niet voorkomen in het wachtwoord')
+            return False
+
+        if len(password) < 8:
+            password_fault = (
+                'Het wachtwoord is te kort\ngebruik minimaal 8 karakters.')
+            return False
+
+        alphabet = 'abcdefghijklmnopqrstuvwxyz'
+        alphabet_up = alphabet.upper()
+        special = '~!@#$%^&*_-+=`|\\(){}[]:;"`\'<>,.?/'
+        number = '1234567890'
+
+        categories_in_password = 0
+        for category in [alphabet, alphabet_up, special, number]:
+            for char in category:
+                if char in password:
+                    categories_in_password += 1
+                    break
+        if categories_in_password < 3:
+            self.password_fault = (
+                'Het wachtwoord niet complex genoeg.\n'
+                'Maak gebruik van tekens, letters en cijfers')
+            return False
+
+        return True
 
 
 def reset_password():
@@ -102,18 +143,17 @@ def reset_password():
     elif not check_user_group():
         print('You have insufficient rights to change usser passwords')
     else:
-        domain_users = powershell(['(get-aduser -filter *).samaccountname'])
         username = input("Enter username: ")
         password = input("Enter password: ")
 
         while True:
             if username == "":
                 print("Enter username")
-            elif username not in domain_users:
+            elif check_user_ad(username):
                 print("Unknown user")
             elif password == "":
                 print("Enter password")
-            elif not valid_password():
+            elif not checkout_password(password, username):
                 print("Password does not meet password requirements")
             else:
                 break
@@ -133,9 +173,9 @@ def clear_screen():
 clear_screen()
 
 # Optional arguments
-parser.add_argument("--reset", help="Install and configure OpenSSH server",
+parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
-parser.add_argument("--install", help="Install OpenSSH server",
+parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)",
                     action="store_true")
 
 args = parser.parse_args()
