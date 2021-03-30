@@ -135,13 +135,14 @@ def checkout_password(password, samaccountname) -> bool:
 def reset_password():
     clear_screen()
     if not check_domain():
-        print('Computer not part of a domain')
-        exit()
+        # print('Computer not part of a domain')
+        sys.exit('\nERROR: Computer not part of a domain\n')
     elif not check_rsat():
-        print('RSAT tools')
-        exit()
+        # print('RSAT tools')
+        sys.exit('\nERROR: RSAT Tools are not installed\n')
     elif not check_user_group():
-        print('You have insufficient rights to change usser passwords')
+        # print('You have insufficient rights to change usser passwords')
+        sys.exit('\nERROR: You have insufficient rights to change usser passwords\n')
     else:
         username = input("Enter username: ")
         password = input("Enter password: ")
@@ -180,9 +181,9 @@ parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)"
 
 args = parser.parse_args()
 
-if args.install:
+if args.reset:
     reset_password()
-elif args.show:
+elif args.install:
     install()
 else:
     parser.print_help()
