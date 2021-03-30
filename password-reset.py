@@ -45,18 +45,8 @@ def powershell(input_: list) -> str:
         # logging.warning(e)
 
 
-def install():
-    clear_screen()
-    print('Installing RSAT tools...')
-    install_rsat_server()
-
-
-def install_rsat_server():
-    powershell(['Add-WindowsCapability -Online -Name '
-                'OpenSSH.Server~~~~0.0.1.0'])
-    time.sleep(120)
-    print('- RSAT Tools installed')
-    set_service_and_firewall()
+def os_check() -> str:
+    pass
 
 
 def check_domain() -> bool:
@@ -69,6 +59,10 @@ def check_domain() -> bool:
 
 
 def check_rsat() -> bool:
+    # Windows server
+    # (Get-WindowsFeature -name rsat).installstate return Installed or Available
+    # Windows 10
+    # Get-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
     rsat_check = powershell(['(get-module -list activedirectory).name'])
     if rsat_check == "":
         return False
@@ -132,15 +126,38 @@ def checkout_password(password, samaccountname) -> bool:
         return True
 
 
+def install():
+    clear_screen()
+    print('Installing RSAT tools...')
+    install_rsat_server()
+
+
+def install_rsat_tools():
+    # Windows server syntax
+    # Install-WindowsFeature -IncludeAllSubFeature RSAT
+    # Uninstall-Windowsfeature -Name RSAT
+    # Windows 10 Syntax
+    # Add-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
+    # Remove-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
+    powershell(['Add-WindowsCapability -Online -Name '
+                'OpenSSH.Server~~~~0.0.1.0'])
+    time.sleep(60)
+    print('- RSAT Tools installed')
+
+
+def remove_rsat_tools():
+    pass
+
+
 def reset_password():
     clear_screen()
-    if not check_domain():
+    if not check_domain:
         # print('Computer not part of a domain')
         sys.exit('\nERROR: Computer not part of a domain\n')
-    elif not check_rsat():
+    elif not check_rsat:
         # print('RSAT tools')
         sys.exit('\nERROR: RSAT Tools are not installed\n')
-    elif not check_user_group():
+    elif not check_user_group:
         # print('You have insufficient rights to change usser passwords')
         sys.exit('\nERROR: You have insufficient rights to change usser passwords\n')
     else:
