@@ -34,6 +34,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx_copybutton",
     "sphinx_last_updated_by_git",
+    "hoverxref.extension",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
