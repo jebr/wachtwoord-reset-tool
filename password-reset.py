@@ -142,7 +142,7 @@ def check_rsat() -> bool:
 def install():
     clear_screen()
     print('Installing RSAT tools...')
-    install_rsat_server()
+    install_rsat_tools()
 
 
 def install_rsat_tools():
