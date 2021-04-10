@@ -14,6 +14,35 @@ parser = argparse.ArgumentParser(description='Python script to reset '
                                              'domain users password')
 
 
+def escape_cmd(command):
+    return command.replace('&', '^&')
+
+
+def powershell(input_: list) -> str:
+    """
+    Returns a string when no error
+    If an exception occurs the exeption is logged and None is returned
+    """
+    if sys.platform == 'win32':
+        input_ = [escape_cmd(elem) for elem in input_]
+    execute = ['powershell.exe'] + input_
+
+    try:
+        proc = subprocess.Popen(execute,
+                                shell=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                stdin=subprocess.PIPE,
+                                cwd=os.getcwd(),
+                                env=os.environ)
+        proc.stdin.close()
+        outs, errs = proc.communicate(timeout=180)
+        return outs.decode('U8')
+    except Exception as e:
+        print(e)
+        # logging.warning(e)
+
+
 def check_domain() -> bool:
     domain_check = powershell(['(Get-WmiObject -Class Win32_ComputerSystem).'
                                'PartOfDomain'])
@@ -46,35 +75,6 @@ def check_os_version():
     windows_version = powershell(['(Get-WmiObject -class Win32_OperatingSystem).Caption'])
     if 'server' in windows_version.lower():
         sys.exit(f'\nERROR: {windows_version} is not supported\n')
-
-
-def escape_cmd(command):
-    return command.replace('&', '^&')
-
-
-def powershell(input_: list) -> str:
-    """
-    Returns a string when no error
-    If an exception occurs the exeption is logged and None is returned
-    """
-    if sys.platform == 'win32':
-        input_ = [escape_cmd(elem) for elem in input_]
-    execute = ['powershell.exe'] + input_
-
-    try:
-        proc = subprocess.Popen(execute,
-                                shell=True,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                stdin=subprocess.PIPE,
-                                cwd=os.getcwd(),
-                                env=os.environ)
-        proc.stdin.close()
-        outs, errs = proc.communicate(timeout=180)
-        return outs.decode('U8')
-    except Exception as e:
-        print(e)
-        # logging.warning(e)
 
 
 def get_ad_users():
@@ -133,7 +133,7 @@ def check_rsat() -> bool:
     # Windows 10
     # Get-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
     rsat_check = powershell(['(Get-Module -List ActiveDirectory).Name'])
-    if rsat_check == "ActiveDirectory":
+    if rsat_check.rstrip() == "ActiveDirectory":
         return True
     else:
         return False
