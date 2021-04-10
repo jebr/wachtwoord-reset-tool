@@ -72,22 +72,24 @@ def check_user_ad(samaccountname) -> bool:
 
 
 def check_os_version():
-    windows_version = powershell(['(Get-WmiObject -class Win32_OperatingSystem).Caption'])
+    windows_version = powershell(['(Get-WmiObject '
+                                  '-class Win32_OperatingSystem).Caption'])
     if 'server' in windows_version.lower():
         sys.exit(f'\nERROR: {windows_version} is not supported\n')
 
 
 def get_ad_users():
-    clear_screen()
+    users = dict
     ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
-    print(ad_users)
+    return users
 
 
-# TODO: Weergave maken van lijst met AD gebruikers (tabulate module)
-# TODO: Eventuele overige informatie over de gebruiker in de tabel zetten,
-# TODO: bijvoorbeel groep e.d.
+# Weergave maken van lijst met AD gebruikers (tabulate module)
+# Eventuele overige informatie over de gebruiker in de tabel zetten,
+# bijvoorbeel groep e.d.
 def list_ad_users():
-    pass
+    clear_screen()
+    print("\n-------- List Active Directory Users --------")
 
 
 def checkout_password(password, samaccountname) -> bool:
