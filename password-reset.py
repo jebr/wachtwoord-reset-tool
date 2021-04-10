@@ -83,6 +83,13 @@ def get_ad_users():
     print(ad_users)
 
 
+# TODO: Weergave maken van lijst met AD gebruikers (tabulate module)
+# TODO: Eventuele overige informatie over de gebruiker in de tabel zetten,
+# TODO: bijvoorbeel groep e.d.
+def list_ad_users():
+    pass
+
+
 def checkout_password(password, samaccountname) -> bool:
         """Password requirements based on
         https://docs.microsoft.com/en-us/windows/security/threat-protection/
@@ -154,14 +161,16 @@ def remove_rsat_tools():
 
 
 def system_checks():
-    clear_screen()
-    if not check_domain:
+    domain = check_domain()
+    rsat = check_rsat()
+    group = check_user_group()
+    if not domain:
         # print('Computer not part of a domain')
         sys.exit('\nERROR: Computer not part of a domain\n')
-    elif not check_rsat:
+    elif not rsat:
         # print('RSAT tools')
         sys.exit('\nERROR: RSAT Tools are not installed\n')
-    elif not check_user_group:
+    elif not group:
         # print('You have insufficient rights to change usser passwords')
         sys.exit('\nERROR: You have insufficient rights to change '
                  'user passwords\n')
@@ -219,14 +228,15 @@ parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)"
 parser.add_argument("--getusers", help="list Active Directory Users)",
                     action="store_true")
 
+# Pre-checks
 check_os_version()
+system_checks()
+
 args = parser.parse_args()
 
 if args.reset:
-    system_checks()
     reset_password()
 elif args.install:
-    system_checks()
     install()
 elif args.getusers:
     get_ad_users()
