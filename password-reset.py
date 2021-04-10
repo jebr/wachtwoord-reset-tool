@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='Python script to reset '
 def check_domain() -> bool:
     domain_check = powershell(['(Get-WmiObject -Class Win32_ComputerSystem).'
                                'PartOfDomain'])
-    if domain_check == "True":
+    if domain_check:
         return True
     else:
         return False
@@ -147,8 +147,8 @@ def install():
 
 def install_rsat_tools():
     clear_screen()
-    powershell(['Add-WindowsCapability -Online -Name '
-                    'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'])
+    powershell(['Add-WindowsCapability -Online '
+                '-Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'])
     print('- RSAT Tools installed')
 
 
