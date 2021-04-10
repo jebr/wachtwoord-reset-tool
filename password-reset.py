@@ -84,6 +84,7 @@ def get_ad_users():
     ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
     print(ad_users)
 
+
 def checkout_password(password, samaccountname) -> bool:
         """Password requirements based on
         https://docs.microsoft.com/en-us/windows/security/threat-protection/
@@ -127,7 +128,6 @@ def install():
     install_rsat_server()
 
 
-
 def check_rsat() -> bool:
     # Windows server
     # (Get-WindowsFeature -name rsat).installstate return Installed or Available
@@ -140,7 +140,7 @@ def check_rsat() -> bool:
         return True
 
 
-# TODO: programmeren  voor Windows10 en Windows server
+# TODO: programmeren voor Windows10 en Windows server
 def install_rsat_tools():
     # Windows server syntax
     #
@@ -168,9 +168,9 @@ def reset_password():
         sys.exit('\nERROR: RSAT Tools are not installed\n')
     elif not check_user_group:
         # print('You have insufficient rights to change usser passwords')
-        sys.exit('\nERROR: You have insufficient rights to change usser passwords\n')
+        sys.exit('\nERROR: You have insufficient rights to change '
+                 'user passwords\n')
     else:
-
         while True:
             print("\nEnter SamAccountName (q to quit)\n")
             username = input("Enter username: ")
@@ -185,7 +185,6 @@ def reset_password():
                 print("\nThe user does not exist in the active directory\n")
             else:
                 break
-
 
         while True:
             print("\nEnter Password (q to quit)\n")
