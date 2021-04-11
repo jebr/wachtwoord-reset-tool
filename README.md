@@ -1,2 +1,2 @@
 # Wachtwoord Reset Tool
-Powershell wachtwoord reset tool
+Python wachtwoord reset tool voor Active Directory gebruikers

@@ -14,40 +14,6 @@ parser = argparse.ArgumentParser(description='Python script to reset '
                                              'domain users password')
 
 
-def check_domain() -> bool:
-    domain_check = powershell(['(Get-WmiObject -Class Win32_ComputerSystem).'
-                               'PartOfDomain'])
-    if domain_check == "True":
-        return True
-    else:
-        return False
-
-
-def check_user_group() -> bool:
-    group_check = powershell(['(Get-ADUser -Identity $env:USERNAME '
-                              '-Properties Memberof).Memberof'])
-    if "Domain Admins" in group_check:
-        return True
-    elif "Account Operators" in group_check:
-        return True
-    else:
-        return False
-
-
-def check_user_ad(samaccountname) -> bool:
-    ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
-    if samaccountname in ad_users:
-        return True
-    else:
-        return False
-
-
-def check_os_version():
-    windows_version = powershell(['(Get-WmiObject -class Win32_OperatingSystem).Caption'])
-    if 'server' in windows_version.lower():
-        sys.exit(f'\nERROR: {windows_version} is not supported\n')
-
-
 def escape_cmd(command):
     return command.replace('&', '^&')
 
@@ -77,17 +43,53 @@ def powershell(input_: list) -> str:
         # logging.warning(e)
 
 
-def get_ad_users():
-    clear_screen()
+def check_domain() -> bool:
+    domain_check = powershell(['(Get-WmiObject -Class Win32_ComputerSystem).'
+                               'PartOfDomain'])
+    if domain_check:
+        return True
+    else:
+        return False
+
+
+def check_user_group() -> bool:
+    group_check = powershell(['(Get-ADUser -Identity $env:USERNAME '
+                              '-Properties Memberof).Memberof'])
+    if "Domain Admins" in group_check:
+        return True
+    elif "Account Operators" in group_check:
+        return True
+    else:
+        return False
+
+
+def check_user_ad(samaccountname) -> bool:
     ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
-    print(ad_users)
+    if samaccountname in ad_users:
+        return True
+    else:
+        return False
 
 
-# TODO: Weergave maken van lijst met AD gebruikers (tabulate module)
-# TODO: Eventuele overige informatie over de gebruiker in de tabel zetten,
-# TODO: bijvoorbeel groep e.d.
+def check_os_version():
+    windows_version = powershell(['(Get-WmiObject '
+                                  '-class Win32_OperatingSystem).Caption'])
+    if 'server' in windows_version.lower():
+        sys.exit(f'\nERROR: {windows_version} is not supported\n')
+
+
+def get_ad_users():
+    users = dict
+    ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
+    return users
+
+
+# Weergave maken van lijst met AD gebruikers (tabulate module)
+# Eventuele overige informatie over de gebruiker in de tabel zetten,
+# bijvoorbeel groep e.d.
 def list_ad_users():
-    pass
+    clear_screen()
+    print("\n-------- List Active Directory Users --------")
 
 
 def checkout_password(password, samaccountname) -> bool:
@@ -133,7 +135,7 @@ def check_rsat() -> bool:
     # Windows 10
     # Get-WindowsCapability -Name Rsat.WSUS.Tools~~~~0.0.1.0 –online
     rsat_check = powershell(['(Get-Module -List ActiveDirectory).Name'])
-    if rsat_check == "ActiveDirectory":
+    if rsat_check.rstrip() == "ActiveDirectory":
         return True
     else:
         return False
@@ -142,13 +144,13 @@ def check_rsat() -> bool:
 def install():
     clear_screen()
     print('Installing RSAT tools...')
-    install_rsat_server()
+    install_rsat_tools()
 
 
 def install_rsat_tools():
     clear_screen()
-    powershell(['Add-WindowsCapability -Online -Name '
-                    'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'])
+    powershell(['Add-WindowsCapability -Online '
+                '-Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'])
     print('- RSAT Tools installed')
 
 
