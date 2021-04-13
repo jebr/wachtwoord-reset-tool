@@ -79,17 +79,55 @@ def check_os_version():
 
 
 def get_ad_users():
-    users = dict
-    ad_users = powershell(['(Get-ADUser -Filter *).SamAccountName'])
-    return users
+    new_samaccountlist = list()
+    new_namelist = list()
+
+    samaccountname = powershell(
+        ['(get-aduser -filter *).SamAccountName']).split("\r\n")
+    username = powershell(['(get-aduser -filter *).Name']).split("\r\n")
+
+    for user in samaccountname:
+        if user == "":
+            continue
+        else:
+            new_samaccountlist.append(user)
+
+    for user in username:
+        if user == "":
+            continue
+        else:
+            new_namelist.append(user)
+
+    users_dict = dict(zip(new_samaccountlist, new_namelist))
+
+    print("\n-------- List Active Directory Users --------\n")
+    print(f'{"SamAccountName":<15} | {"Name":<10}')
+    print("===============================")
+
+    for key, value in users_dict.items():
+        samaccountname = key
+        name = value
+        print(f"{samaccountname:<15} | {name:<10}")
 
 
-# Weergave maken van lijst met AD gebruikers (tabulate module)
-# Eventuele overige informatie over de gebruiker in de tabel zetten,
-# bijvoorbeel groep e.d.
-def list_ad_users():
-    clear_screen()
-    print("\n-------- List Active Directory Users --------")
+def search_ad_user():
+    while True:
+        print("\nEnter SamAccountName (q to quit)\n")
+        username = input("SamAccountName: ")
+        if username == "":
+            clear_screen()
+            print("\nUsername can't be empty\n")
+        elif username == "q":
+            clear_screen()
+            sys.exit('\nProgram stopped by the user\n')
+        elif not check_user_ad(username):
+            clear_screen()
+            sys.exit("\nThe user does not exist in the active directory\n")
+        elif check_user_ad():
+            clear_screen()
+            sys.exit("\nThe user exists in the active directory\n")
+        else:
+            break
 
 
 def checkout_password(password, samaccountname) -> bool:
@@ -216,6 +254,7 @@ def reset_password():
     print(f"Password of {username} changed to {password}")
 
 
+
 def clear_screen():
     powershell(["clear"])
 
@@ -225,9 +264,11 @@ clear_screen()
 # Optional arguments
 parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
-parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)",
-                    action="store_true")
+# parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)",
+#                     action="store_true")
 parser.add_argument("--getusers", help="list Active Directory Users)",
+                    action="store_true")
+parser.add_argument("--search", help="Search Active Directory Users)",
                     action="store_true")
 
 # Pre-checks
@@ -238,8 +279,8 @@ args = parser.parse_args()
 
 if args.reset:
     reset_password()
-elif args.install:
-    install()
+elif args.search:
+    search_ad_user()
 elif args.getusers:
     get_ad_users()
 else:
