@@ -123,7 +123,7 @@ def search_ad_user():
         elif not check_user_ad(username):
             clear_screen()
             sys.exit("\nThe user does not exist in the active directory\n")
-        elif check_user_ad():
+        elif check_user_ad(username):
             clear_screen()
             sys.exit("\nThe user exists in the active directory\n")
         else:
@@ -189,7 +189,7 @@ def install_rsat_tools():
     clear_screen()
     powershell(['Add-WindowsCapability -Online '
                 '-Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'])
-    print('- RSAT Tools installed')
+    sys.exit("RSAT Tools installed")
 
 
 def remove_rsat_tools():
@@ -205,13 +205,10 @@ def system_checks():
     rsat = check_rsat()
     group = check_user_group()
     if not domain:
-        # print('Computer not part of a domain')
         sys.exit('\nERROR: Computer not part of a domain\n')
     elif not rsat:
-        # print('RSAT tools')
-        sys.exit('\nERROR: RSAT Tools are not installed\n')
+        sys.exit("\nRSAT is not installed.\nContact your local administrator for support\n")
     elif not group:
-        # print('You have insufficient rights to change usser passwords')
         sys.exit('\nERROR: You have insufficient rights to change '
                  'user passwords\n')
 
@@ -264,11 +261,9 @@ clear_screen()
 # Optional arguments
 parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
-# parser.add_argument("--install", help="Install RSAT tools (Admin rights needed)",
-#                     action="store_true")
-parser.add_argument("--getusers", help="list Active Directory Users)",
+parser.add_argument("--getusers", help="list Active Directory Users",
                     action="store_true")
-parser.add_argument("--search", help="Search Active Directory Users)",
+parser.add_argument("--search", help="Search Active Directory Users",
                     action="store_true")
 
 # Pre-checks
