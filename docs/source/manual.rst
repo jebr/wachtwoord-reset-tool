@@ -17,3 +17,10 @@ Weergeven van Domein gebruikers
 .. code-block:: bash
 
    password-reset.exe --getusers
+
+Opzoeken van Domein gebruikers
+-------------------------------
+.. code-block:: bash
+
+   password-reset.exe --search
+
