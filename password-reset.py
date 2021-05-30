@@ -81,10 +81,12 @@ def check_os_version():
 def get_ad_users():
     new_samaccountlist = list()
     new_namelist = list()
+    new_lockedstatuslist = list()
 
     samaccountname = powershell(
         ['(get-aduser -filter *).SamAccountName']).split("\r\n")
     username = powershell(['(get-aduser -filter *).Name']).split("\r\n")
+    locked_status = powershell(['(get-aduser -filter *).Enabled']).split("\r\n")
 
     for user in samaccountname:
         if user == "":
@@ -98,6 +100,13 @@ def get_ad_users():
         else:
             new_namelist.append(user)
 
+    for user in locked_status:
+        if user == "":
+            continue
+        else:
+            new_lockedstatuslist.append(user)
+
+    # TODO: Fix dict zip
     users_dict = dict(zip(new_samaccountlist, new_namelist))
 
     print("\n-------- List Active Directory Users --------\n")
