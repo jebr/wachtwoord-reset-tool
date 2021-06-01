@@ -117,10 +117,10 @@ def get_ad_users():
         samaccountname = key
         name = value[0]
 
-        if value[1] == True:
-            locked = "No"
-        elif value[1] == False:
+        if value[1] == "False":
             locked = "Yes"
+        else:
+            locked = "No"
 
         print(f"{samaccountname:<20} | {name:<20} | {locked:<5}")
 
