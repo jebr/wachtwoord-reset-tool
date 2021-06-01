@@ -110,14 +110,14 @@ def get_ad_users():
     users_dict = dict(zip(new_samaccountlist, properties_list))
 
     print("\n-------- List Active Directory Users --------\n")
-    print(f'{"SamAccountName":<15} | {"Name":<15} | {"Locked":<5}')
-    print("===============================")
+    print(f'{"SamAccountName":<20} | {"Name":<20} | {"Locked":<5}')
+    print("===================================================")
 
     for key, value in users_dict.items():
         samaccountname = key
         name = value[0]
         locked = value[1]
-        print(f"{samaccountname:<15} | {name:<15} | {locked:<5}")
+        print(f"{samaccountname:<20} | {name:<20} | {locked:<5}")
 
 def search_ad_user():
     while True:
