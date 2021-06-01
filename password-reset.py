@@ -110,17 +110,17 @@ def get_ad_users():
     users_dict = dict(zip(new_samaccountlist, properties_list))
 
     print("\n-------- List Active Directory Users --------\n")
-    print(f'{"SamAccountName":<20} | {"Name":<20} | {"Locked":<5}')
-    print("====================================================")
+    print(f'{"SamAccountName":<20} | {"Name":<20} | {"Enabled":<5}')
+    print("=====================================================")
 
     for key, value in users_dict.items():
         samaccountname = key
         name = value[0]
 
         if value[1] == "False":
-            locked = "Yes"
-        else:
             locked = "No"
+        else:
+            locked = "Yes"
 
         print(f"{samaccountname:<20} | {name:<20} | {locked:<5}")
 
@@ -264,6 +264,55 @@ def reset_password():
     print(f"Password of {username} changed to {password}")
 
 
+def is_user_enabled(username):
+    is_enabled = powershell([f'(get-aduser -filter * -identity {username}).Enabled'])
+
+    return bool(is_enabled)
+
+
+def disable_user():
+    while True:
+        print("\nEnter SamAccountName (q to quit)\n")
+        username = input("Enter username: ")
+        if username == "":
+            clear_screen()
+            print("\nUsername can't be empty\n")
+        elif username == "q":
+            clear_screen()
+            sys.exit('\nProgram stopped by the user\n')
+        elif not check_user_ad(username):
+            clear_screen()
+            print("\nThe user does not exist in the active directory\n")
+        elif not is_user_enabled(username):
+            clear_screen()
+            print("\nThe user is already locked\n")
+        else:
+            break
+
+        powershell([f'Disable-ADAccount -Identity {username}'])
+
+
+def enable_user():
+    while True:
+        print("\nEnter SamAccountName (q to quit)\n")
+        username = input("Enter username: ")
+        if username == "":
+            clear_screen()
+            print("\nUsername can't be empty\n")
+        elif username == "q":
+            clear_screen()
+            sys.exit('\nProgram stopped by the user\n')
+        elif not check_user_ad(username):
+            clear_screen()
+            print("\nThe user does not exist in the active directory\n")
+        elif is_user_enabled(username):
+            clear_screen()
+            print("\nThe user is already unlocked\n")
+        else:
+            break
+
+        powershell([f'Enable-ADAccount -Identity {username}'])
+
 
 def clear_screen():
     powershell(["clear"])
@@ -272,6 +321,10 @@ def clear_screen():
 clear_screen()
 
 # Optional arguments
+parser.add_argument("--enable", help="Enable an user account",
+                    action="store_true")
+parser.add_argument("--disable", help="Disable an user account",
+                    action="store_true")
 parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
 parser.add_argument("--getusers", help="list Active Directory Users",
@@ -291,5 +344,9 @@ elif args.search:
     search_ad_user()
 elif args.getusers:
     get_ad_users()
+elif args.enable:
+    enable_user()
+elif args.disable:
+    disable_user()
 else:
     parser.print_help()
