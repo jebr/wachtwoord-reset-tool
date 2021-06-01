@@ -111,12 +111,17 @@ def get_ad_users():
 
     print("\n-------- List Active Directory Users --------\n")
     print(f'{"SamAccountName":<20} | {"Name":<20} | {"Locked":<5}')
-    print("===================================================")
+    print("====================================================")
 
     for key, value in users_dict.items():
         samaccountname = key
         name = value[0]
-        locked = value[1]
+
+        if value[1]:
+            locked = "No"
+        elif not value[1]:
+            locked = "Yes"
+
         print(f"{samaccountname:<20} | {name:<20} | {locked:<5}")
 
 def search_ad_user():
