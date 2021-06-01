@@ -106,18 +106,18 @@ def get_ad_users():
         else:
             new_lockedstatuslist.append(user)
 
-    # TODO: Fix dict zip
-    users_dict = dict(zip(new_samaccountlist, new_namelist))
+    properties_list = list(zip(new_namelist, new_lockedstatuslist))
+    users_dict = dict(zip(new_samaccountlist, properties_list))
 
     print("\n-------- List Active Directory Users --------\n")
-    print(f'{"SamAccountName":<15} | {"Name":<10}')
+    print(f'{"SamAccountName":<15} | {"Name":<15} | {"Locked":<5}')
     print("===============================")
 
     for key, value in users_dict.items():
         samaccountname = key
-        name = value
-        print(f"{samaccountname:<15} | {name:<10}")
-
+        name = value[0]
+        locked = value[1]
+        print(f"{samaccountname:<15} | {name:<15} | {locked:<5}")
 
 def search_ad_user():
     while True:
@@ -137,7 +137,6 @@ def search_ad_user():
             sys.exit("\nThe user exists in the active directory\n")
         else:
             break
-
 
 def checkout_password(password, samaccountname) -> bool:
         """Password requirements based on
