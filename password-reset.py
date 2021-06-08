@@ -3,6 +3,7 @@
 # Python script to install and configure OpenSSH server on Windows
 
 import subprocess
+import pyperclip
 import argparse
 import getpass
 import time
@@ -261,7 +262,8 @@ def reset_password():
                 f'-NewPAssword (convertto-securestring '
                 f'-asplaintext "{password}" -force)'])
 
-    print(f"Password of {username} changed to {password}")
+    print(f"Password of {username} has been changed. The password has been copied to your clipboard.")
+    pyperclip.copy(password)
 
 
 def is_user_enabled(username):
