@@ -271,46 +271,40 @@ def is_user_enabled(username):
 
 
 def disable_user():
-    while True:
-        print("\nEnter SamAccountName (q to quit)\n")
-        username = input("Enter username: ")
-        if username == "":
-            clear_screen()
-            print("\nUsername can't be empty\n")
-        elif username == "q":
-            clear_screen()
-            sys.exit('\nProgram stopped by the user\n')
-        elif not check_user_ad(username):
-            clear_screen()
-            print("\nThe user does not exist in the active directory\n")
-        elif not is_user_enabled(username):
-            clear_screen()
-            print("\nThe user is already locked\n")
-        else:
-            break
-
+    print("\nEnter SamAccountName (q to quit)\n")
+    username = input("Enter username: ")
+    if username == "":
+        clear_screen()
+        print("\nUsername can't be empty\n")
+    elif username == "q":
+        clear_screen()
+        sys.exit('\nProgram stopped by the user\n')
+    elif not check_user_ad(username):
+        clear_screen()
+        print("\nThe user does not exist in the active directory\n")
+    elif not is_user_enabled(username):
+        clear_screen()
+        print("\nThe user is already disabled\n")
+    else:
         powershell([f'Disable-ADAccount -Identity {username}'])
 
 
 def enable_user():
-    while True:
-        print("\nEnter SamAccountName (q to quit)\n")
-        username = input("Enter username: ")
-        if username == "":
-            clear_screen()
-            print("\nUsername can't be empty\n")
-        elif username == "q":
-            clear_screen()
-            sys.exit('\nProgram stopped by the user\n')
-        elif not check_user_ad(username):
-            clear_screen()
-            print("\nThe user does not exist in the active directory\n")
-        elif is_user_enabled(username):
-            clear_screen()
-            print("\nThe user is already unlocked\n")
-        else:
-            break
-
+    print("\nEnter SamAccountName (q to quit)\n")
+    username = input("Enter username: ")
+    if username == "":
+        clear_screen()
+        print("\nUsername can't be empty\n")
+    elif username == "q":
+        clear_screen()
+        sys.exit('\nProgram stopped by the user\n')
+    elif not check_user_ad(username):
+        clear_screen()
+        print("\nThe user does not exist in the active directory\n")
+    elif is_user_enabled(username):
+        clear_screen()
+        print("\nThe user is already enabled\n")
+    else:
         powershell([f'Enable-ADAccount -Identity {username}'])
 
 
