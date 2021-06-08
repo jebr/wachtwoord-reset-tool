@@ -265,9 +265,9 @@ def reset_password():
 
 
 def is_user_enabled(username):
-    is_enabled = powershell([f'(get-aduser -filter * -identity {username}).Enabled'])
+    is_enabled = powershell([f'(Get-ADUser {username}).Enabled'])
 
-    return bool(is_enabled)
+    return is_enabled
 
 
 def disable_user():
@@ -282,7 +282,7 @@ def disable_user():
     elif not check_user_ad(username):
         clear_screen()
         print("\nThe user does not exist in the active directory\n")
-    elif not is_user_enabled(username):
+    elif is_user_enabled(username) == False:
         clear_screen()
         print("\nThe user is already disabled\n")
     else:
@@ -301,7 +301,7 @@ def enable_user():
     elif not check_user_ad(username):
         clear_screen()
         print("\nThe user does not exist in the active directory\n")
-    elif is_user_enabled(username):
+    elif is_user_enabled(username) == True:
         clear_screen()
         print("\nThe user is already enabled\n")
     else:
