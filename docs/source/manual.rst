@@ -24,3 +24,15 @@ Opzoeken van Domein gebruikers
 
    password-reset.exe --search
 
+Uitschakelen van Domein gebruikers
+-------------------------------
+.. code-block:: bash
+
+   password-reset.exe --disable
+
+Inschakelen van Domein gebruikers
+-------------------------------
+.. code-block:: bash
+
+   password-reset.exe --enable
+
