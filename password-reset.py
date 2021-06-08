@@ -3,6 +3,7 @@
 # Python script to install and configure OpenSSH server on Windows
 
 import subprocess
+import pyperclip
 import argparse
 import getpass
 import time
@@ -81,10 +82,12 @@ def check_os_version():
 def get_ad_users():
     new_samaccountlist = list()
     new_namelist = list()
+    new_lockedstatuslist = list()
 
     samaccountname = powershell(
         ['(get-aduser -filter *).SamAccountName']).split("\r\n")
     username = powershell(['(get-aduser -filter *).Name']).split("\r\n")
+    locked_status = powershell(['(get-aduser -filter *).Enabled']).split("\r\n")
 
     for user in samaccountname:
         if user == "":
@@ -98,17 +101,29 @@ def get_ad_users():
         else:
             new_namelist.append(user)
 
-    users_dict = dict(zip(new_samaccountlist, new_namelist))
+    for user in locked_status:
+        if user == "":
+            continue
+        else:
+            new_lockedstatuslist.append(user)
+
+    properties_list = list(zip(new_namelist, new_lockedstatuslist))
+    users_dict = dict(zip(new_samaccountlist, properties_list))
 
     print("\n-------- List Active Directory Users --------\n")
-    print(f'{"SamAccountName":<15} | {"Name":<10}')
-    print("===============================")
+    print(f'{"SamAccountName":<20} | {"Name":<20} | {"Enabled":<5}')
+    print("=====================================================")
 
     for key, value in users_dict.items():
         samaccountname = key
-        name = value
-        print(f"{samaccountname:<15} | {name:<10}")
+        name = value[0]
 
+        if value[1] == "False":
+            locked = "No"
+        else:
+            locked = "Yes"
+
+        print(f"{samaccountname:<20} | {name:<20} | {locked:<5}")
 
 def search_ad_user():
     while True:
@@ -128,7 +143,6 @@ def search_ad_user():
             sys.exit("\nThe user exists in the active directory\n")
         else:
             break
-
 
 def checkout_password(password, samaccountname) -> bool:
         """Password requirements based on
@@ -248,8 +262,52 @@ def reset_password():
                 f'-NewPAssword (convertto-securestring '
                 f'-asplaintext "{password}" -force)'])
 
-    print(f"Password of {username} changed to {password}")
+    print(f"Password of {username} has been changed. The password has been copied to your clipboard.")
+    pyperclip.copy(password)
 
+
+def is_user_enabled(username):
+    is_enabled = powershell([f'(Get-ADUser {username}).Enabled']).split("\r\n")[0]
+
+    return is_enabled
+
+
+def disable_user():
+    print("\nEnter SamAccountName (q to quit)\n")
+    username = input("Enter username: ")
+    if username == "":
+        clear_screen()
+        print("\nUsername can't be empty\n")
+    elif username == "q":
+        clear_screen()
+        sys.exit('\nProgram stopped by the user\n')
+    elif not check_user_ad(username):
+        clear_screen()
+        print("\nThe user does not exist in the active directory\n")
+    elif is_user_enabled(username) == "False":
+        clear_screen()
+        print("\nThe user is already disabled\n")
+    else:
+        powershell([f'Disable-ADAccount -Identity {username}'])
+
+
+def enable_user():
+    print("\nEnter SamAccountName (q to quit)\n")
+    username = input("Enter username: ")
+    if username == "":
+        clear_screen()
+        print("\nUsername can't be empty\n")
+    elif username == "q":
+        clear_screen()
+        sys.exit('\nProgram stopped by the user\n')
+    elif not check_user_ad(username):
+        clear_screen()
+        print("\nThe user does not exist in the active directory\n")
+    elif is_user_enabled(username) == "True":
+        clear_screen()
+        print("\nThe user is already enabled\n")
+    else:
+        powershell([f'Enable-ADAccount -Identity {username}'])
 
 
 def clear_screen():
@@ -259,6 +317,10 @@ def clear_screen():
 clear_screen()
 
 # Optional arguments
+parser.add_argument("--enable", help="Enable an user account",
+                    action="store_true")
+parser.add_argument("--disable", help="Disable an user account",
+                    action="store_true")
 parser.add_argument("--reset", help="Reset user password",
                     action="store_true")
 parser.add_argument("--getusers", help="list Active Directory Users",
@@ -278,5 +340,9 @@ elif args.search:
     search_ad_user()
 elif args.getusers:
     get_ad_users()
+elif args.enable:
+    enable_user()
+elif args.disable:
+    disable_user()
 else:
     parser.print_help()
